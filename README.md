@@ -43,8 +43,7 @@ sh setup.sh
 ## Run the example
 
 ```
-python3 simple_detect.py \
-  --model efficientdet_lite0.tflite
+python3 simple_detect.py 
 ```
 
 You should see the camera feed appear on the monitor attached to your Raspberry
