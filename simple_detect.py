@@ -26,12 +26,12 @@ RESET_LENGTH = 5.0
 class SimpleDetector(object):
 
     def __init__(self, model, maxResults, scoreThreshold, cameraId, frameWidth, frameHeight):
-        self.model = model or None
-        self.maxResults = maxResults or None
-        self.scoreThreshold = scoreThreshold or None
-        self.cameraId = cameraId or None
-        self.frameWidth = frameWidth or None
-        self.frameHeight = frameHeight or None
+        self.model = model
+        self.maxResults = maxResults
+        self.scoreThreshold = scoreThreshold
+        self.cameraId = cameraId 
+        self.frameWidth = frameWidth 
+        self.frameHeight = frameHeight
         self.start_time = time.time()
         self.timer_reset = False
         self.closed = True
@@ -50,7 +50,7 @@ class SimpleDetector(object):
         
 
         # Start capturing video input from the camera
-        cap = cv2.VideoCapture(self.cameraId)
+        cap = cv2.VideoCapture(int(self.cameraId))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.frameWidth)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frameHeight)
 
