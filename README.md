@@ -20,7 +20,7 @@ attached to the Pi to see the camera stream.
 
 ```
 cd object-detection-pi
-python -m venv --system-site-packages env
+python3 -m venv --system-site-packages env
 source env/bin/activate
 ```
 
