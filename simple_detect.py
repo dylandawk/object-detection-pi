@@ -10,6 +10,8 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
+from utils import visualize
+
 # Global variables to calculate FPS
 COUNTER, FPS = 0, 0
 START_TIME = time.time()
@@ -78,10 +80,14 @@ class SimpleDetector(object):
             COUNTER += 1
         
         # Initialize the object detection model
-        base_options = python.BaseOptions(model_asset_path=self.model)
+        base_options = python.BaseOptions(
+            model_asset_path=self.model  
+        )
         options = vision.ObjectDetectorOptions(base_options=base_options,
                                                 running_mode=vision.RunningMode.LIVE_STREAM,
-                                                max_results=self.maxResults, score_threshold=self.scoreThreshold,
+                                                max_results=self.maxResults, 
+                                                score_threshold=self.scoreThreshold,
+                                                category_allowlist=[PERSON],
                                                 result_callback=save_result)
         detector = vision.ObjectDetector.create_from_options(options)
 
@@ -103,23 +109,35 @@ class SimpleDetector(object):
             # Run object detection using the model.
             detector.detect_async(mp_image, time.time_ns() // 1_000_000)
 
-            if detection_result_list:       
+            current_frame = image
+            if detection_result_list:
+                # Prepare object detection image visual
+                current_frame = visualize(current_frame, detection_result_list[0])
+                detection_frame = current_frame
+                # Iterate through the detection results       
                 for detected_object in detection_result_list[0].detections:
                     detected_object_name = detected_object.categories[0].category_name
+                    # If the object has changed run callback
                     if current_object_name != detected_object_name:
                         current_object_name = detected_object_name
                         self.on_object_changed(current_object_name)
+                detection_result_list.clear()
             else:
-                detected_object_name = NONE_OBJ
-                if current_object_name != detected_object_name:
-                    current_object_name = detected_object_name
+                # If no object detect when it was detected in previous result, run callback
+                if current_object_name != NONE_OBJ:
+                    current_object_name = NONE_OBJ
                     self.on_object_changed(current_object_name)
-                elif self.timer_reset == True:
+                # If the timer has been reset check the amount of time that has passed since reset
+                if self.timer_reset == True:
+                    # If the reset time is above the RESET_LENGTH stop the timer and trigger close
                     if time.time() - self.start_time > RESET_LENGTH:
                         print("Closing Flower!")
                         self.timer_reset = False
                         self.closed = True
-            detection_result_list.clear()
+                    
+            # Display the image
+            if detection_frame is not None:
+                cv2.imshow('object_detection', detection_frame)
 
             # Stop the program if the ESC key is pressed.
             if cv2.waitKey(1) == 27:
@@ -159,7 +177,7 @@ def main():
         '--model',
         help='Path of the object detection model.',
         required=False,
-        default='efficientdet.tflite')
+        default='ssdmobilenet.tflite')
     parser.add_argument(
         '--maxResults',
         help='Max number of detection results.',
@@ -170,7 +188,7 @@ def main():
         help='The score threshold of detection results.',
         required=False,
         type=float,
-        default=0.7)
+        default=0.5)
     # Finding the camera ID can be very reliant on platform-dependent methods. 
     # One common approach is to use the fact that camera IDs are usually indexed sequentially by the OS, starting from 0. 
     # Here, we use OpenCV and create a VideoCapture object for each potential ID with 'cap = cv2.VideoCapture(i)'.
