@@ -25,7 +25,15 @@ RESET_LENGTH = 5.0
 
 class SimpleDetector(object):
 
-    def __init__(self, model, maxResults, scoreThreshold, cameraId, frameWidth, frameHeight):
+    def __init__(self, 
+                 model, 
+                 maxResults, 
+                 scoreThreshold, 
+                 cameraId, 
+                 frameWidth, 
+                 frameHeight,
+                 visualize
+        ):
         self.model = model
         self.maxResults = maxResults
         self.scoreThreshold = scoreThreshold
@@ -35,6 +43,7 @@ class SimpleDetector(object):
         self.start_time = time.time()
         self.timer_reset = False
         self.closed = True
+        self.visualize = visualize
     
     def run(self) -> None:
         """Continuously run inference on images acquired from the camera.
@@ -111,9 +120,10 @@ class SimpleDetector(object):
 
             current_frame = image
             if detection_result_list:
-                # Prepare object detection image visual
-                current_frame = visualize(current_frame, detection_result_list[0])
-                detection_frame = current_frame
+                if self.visualize:
+                    # Prepare object detection image visual
+                    current_frame = visualize(current_frame, detection_result_list[0])
+                    detection_frame = current_frame
                 # Iterate through the detection results       
                 for detected_object in detection_result_list[0].detections:
                     detected_object_name = detected_object.categories[0].category_name
@@ -136,7 +146,7 @@ class SimpleDetector(object):
                         self.closed = True
                     
             # Display the image
-            if detection_frame is not None:
+            if self.visualize and detection_frame is not None:
                 cv2.imshow('object_detection', detection_frame)
 
             # Stop the program if the ESC key is pressed.
@@ -188,7 +198,7 @@ def main():
         help='The score threshold of detection results.',
         required=False,
         type=float,
-        default=0.5)
+        default=0.7)
     # Finding the camera ID can be very reliant on platform-dependent methods. 
     # One common approach is to use the fact that camera IDs are usually indexed sequentially by the OS, starting from 0. 
     # Here, we use OpenCV and create a VideoCapture object for each potential ID with 'cap = cv2.VideoCapture(i)'.
@@ -214,6 +224,11 @@ def main():
         type=int,
         default=240
     )
+    parser.add_argument(
+        '--visualize',
+        help='Display detection results in UI',
+        action='store_true',
+    )
     args = parser.parse_args()
 
     simple_detector = SimpleDetector(
@@ -223,6 +238,7 @@ def main():
         cameraId=int(args.cameraId),
         frameWidth=args.frameWidth,
         frameHeight=args.frameHeight,
+        visualize=args.visualize,
     )
     simple_detector.run()
 
