@@ -18,25 +18,17 @@ attached to the Pi to see the camera stream.
 
 ## Set up virtual environment
 
-`python -m venv --system-site-packages env
-source env/bin/activate`
-run the setup script:
-`sh setup.sh`
-run the program
-`python simple_detect.py`
+```
+cd object-detection-pi
+python -m venv --system-site-packages env
+source env/bin/activate
+```
 
 ## Install MediaPipe
-
-You can install the required dependencies using the setup.sh script provided with this project.
-
-## Download the examples repository
-
-First, clone this Git repo onto your Raspberry Pi.
 
 Run this script to install the required dependencies and download the TFLite models:
 
 ```
-cd object-detection-pi
 sh setup.sh
 ```
 
